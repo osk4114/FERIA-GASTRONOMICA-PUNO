@@ -30,6 +30,13 @@ app.use(cors({
   origin: [
     'http://localhost:4200',
     'http://127.0.0.1:4200',
+    'http://172.40.15.19:4200',  // IP actual de la red
+    'http://172.40.15.20:4200',  // Otras IPs de la red
+    'http://172.40.15.21:4200',  
+    'http://192.168.1.100:4200',  // Rango común 192.168.1.x
+    'http://192.168.1.101:4200',
+    'http://192.168.0.100:4200',  // Rango común 192.168.0.x
+    'http://192.168.0.101:4200',
     process.env.FRONTEND_URL
   ],
   credentials: true,

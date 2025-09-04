@@ -1,0 +1,44 @@
+PS S:\FERIAGASTRONOMICA> ipconfig 
+
+Configuración IP de Windows
+
+
+Adaptador de Ethernet Ethernet:
+
+   Sufijo DNS específico para la conexión. . : 
+   Vínculo: dirección IPv6 local. . . : fe80::29f7:a9bd:1d77:e4c1%13
+   Dirección IPv4. . . . . . . . . . . . . . : 172.40.15.19
+   Máscara de subred . . . . . . . . . . . . : 255.255.255.0
+   Puerta de enlace predeterminada . . . . . : 172.40.15.1
+
+Adaptador de Ethernet Ethernet 2:
+
+   Sufijo DNS específico para la conexión. . : 
+   Vínculo: dirección IPv6 local. . . : fe80::84af:ceef:3231:34b3%2
+   Dirección IPv4. . . . . . . . . . . . . . : 192.168.56.1
+   Máscara de subred . . . . . . . . . . . . : 255.255.255.0
+   Puerta de enlace predeterminada . . . . . : 
+
+Adaptador de LAN inalámbrica Wi-Fi:
+
+   Estado de los medios. . . . . . . . . . . : medios desconectados
+   Sufijo DNS específico para la conexión. . : 
+
+Adaptador de LAN inalámbrica Conexión de área local* 1:
+
+   Estado de los medios. . . . . . . . . . . : medios desconectados
+   Sufijo DNS específico para la conexión. . :
+
+Adaptador de LAN inalámbrica Conexión de área local* 2:
+
+   Estado de los medios. . . . . . . . . . . : medios desconectados
+   Sufijo DNS específico para la conexión. . :
+
+Adaptador de Ethernet vEthernet (WSL (Hyper-V firewall)):
+
+   Sufijo DNS específico para la conexión. . : 
+   Vínculo: dirección IPv6 local. . . : fe80::7530:19ff:a7a7:45c2%46
+   Dirección IPv4. . . . . . . . . . . . . . : 172.17.240.1
+   Máscara de subred . . . . . . . . . . . . : 255.255.240.0
+   Puerta de enlace predeterminada . . . . . :
+PS S:\FERIAGASTRONOMICA>
