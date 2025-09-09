@@ -85,15 +85,23 @@ export const useAdminStore = defineStore('admin', () => {
 
   const terminateSession = async (sessionId) => {
     try {
+      console.log('Store terminateSession called with sessionId:', sessionId)
+      console.log('Making DELETE request to:', `${API_BASE_URL}/admin/sessions/${sessionId}`)
+      
       const response = await axios.delete(`${API_BASE_URL}/admin/sessions/${sessionId}`)
+      console.log('Delete session response:', response.data)
       
       if (response.data.success) {
         // Remover sesión de la lista local
+        const originalLength = activeSessions.value.length
         activeSessions.value = activeSessions.value.filter(s => s.sessionId !== sessionId)
+        console.log(`Sessions removed from local list: ${originalLength} -> ${activeSessions.value.length}`)
+        
         toast.success(response.data.message)
         return { success: true }
       }
     } catch (error) {
+      console.error('Store terminateSession error:', error)
       const message = error.response?.data?.message || 'Error terminando sesión'
       toast.error(message)
       return { success: false, message }
@@ -148,7 +156,11 @@ export const useAdminStore = defineStore('admin', () => {
   const createUser = async (userData) => {
     try {
       isLoading.value = true
+      console.log('Store createUser called with:', userData)
+      console.log('API URL:', `${API_BASE_URL}/admin/users`)
+      
       const response = await axios.post(`${API_BASE_URL}/admin/users`, userData)
+      console.log('Create user response:', response.data)
       
       if (response.data.success) {
         toast.success(response.data.message)
@@ -157,6 +169,9 @@ export const useAdminStore = defineStore('admin', () => {
         return { success: true, user: response.data.data.user }
       }
     } catch (error) {
+      console.error('Store createUser error:', error)
+      console.error('Error response:', error.response?.data)
+      
       const message = error.response?.data?.message || 'Error creando usuario'
       const errors = error.response?.data?.errors || []
       toast.error(message)
@@ -239,6 +254,83 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  // User Management Actions
+  const fetchUserStats = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/admin/user-stats`)
+      
+      if (response.data.success) {
+        return { success: true, data: response.data.data }
+      } else {
+        console.error('Error fetching user stats:', response.data.message)
+        return { success: false, error: response.data.message }
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  const fetchRoles = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/admin/roles`)
+      
+      if (response.data.success) {
+        return { success: true, data: response.data.data }
+      } else {
+        console.error('Error fetching roles:', response.data.message)
+        return { success: false, error: response.data.message }
+      }
+    } catch (error) {
+      console.error('Error fetching roles:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  const changeUserRole = async (userId, newRole) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/admin/users/${userId}/role`, {
+        rol: newRole
+      })
+      
+      if (response.data.success) {
+        // Actualizar el usuario en el store local
+        const userIndex = users.value.findIndex(u => u._id === userId)
+        if (userIndex !== -1) {
+          users.value[userIndex].rol = newRole
+        }
+        return { success: true, data: response.data.data }
+      } else {
+        console.error('Error changing user role:', response.data.message)
+        return { success: false, error: response.data.message }
+      }
+    } catch (error) {
+      console.error('Error changing user role:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  const toggleUserStatusAction = async (userId) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/admin/users/${userId}/status`)
+      
+      if (response.data.success) {
+        // Actualizar el usuario en el store local
+        const userIndex = users.value.findIndex(u => u._id === userId)
+        if (userIndex !== -1) {
+          users.value[userIndex].activo = response.data.data.activo
+        }
+        return { success: true, data: response.data.data }
+      } else {
+        console.error('Error toggling user status:', response.data.message)
+        return { success: false, error: response.data.message }
+      }
+    } catch (error) {
+      console.error('Error toggling user status:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   return {
     // State
     isLoading,
@@ -265,6 +357,12 @@ export const useAdminStore = defineStore('admin', () => {
     deleteUser,
     toggleUserStatus,
     refreshAll,
-    clearData
+    clearData,
+    
+    // New User Management Actions
+    fetchUserStats,
+    fetchRoles,
+    changeUserRole,
+    toggleUserStatusAction
   }
 })

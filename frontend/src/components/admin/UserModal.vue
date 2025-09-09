@@ -1,84 +1,156 @@
-<template>
-  <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-medium text-gray-900">
+<templ        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-semibold text-gray-900">
+            {{ isEdit ? 'Editar Usuario' : 'Crear Usuario' }}
+          </h3>
+          <!-- Test visibility -->
+          <div style="background-color: red; color: white; padding: 4px; font-size: 12px;">MODAL VISIBLE</div>
+  <div v-if="show" 
+       style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"
+       @click.self="$emit('close')">
+    <div style="background-color: white; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-width: 32rem; width: 100%; margin: 1rem; max-height: 90vh; overflow-y: auto;">
+      <div style="padding: 24px;">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-900">
           {{ isEdit ? 'Editar Usuario' : 'Crear Usuario' }}
         </h3>
         <button
           @click="$emit('close')"
-          class="text-gray-400 hover:text-gray-600"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
         >
-          <XMarkIcon class="h-6 w-6" />
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="space-y-4">
-        <!-- Nombre -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Nombre *
-          </label>
-          <input
-            v-model="form.nombre"
-            type="text"
-            required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Nombre completo"
-          >
-          <p v-if="errors.nombre" class="mt-1 text-sm text-red-600">{{ errors.nombre }}</p>
+      <form @submit.prevent="handleSubmit" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Nombre -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Nombre completo *
+            </label>
+            <input
+              v-model="form.nombre"
+              type="text"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Ingrese el nombre completo"
+            >
+            <p v-if="errors.nombre" class="mt-1 text-sm text-red-600">{{ errors.nombre }}</p>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Correo electrónico *
+            </label>
+            <input
+              v-model="form.email"
+              type="email"
+              required
+              :disabled="isEdit"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="correo@ejemplo.com"
+            >
+            <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
+          </div>
         </div>
 
-        <!-- Email -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
-          <input
-            v-model="form.email"
-            type="email"
-            required
-            :disabled="isEdit"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            placeholder="correo@ejemplo.com"
-          >
-          <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
-        </div>
+        <!-- Password (solo para nuevos usuarios) -->
+        <div v-if="!isEdit" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Contraseña *
+            </label>
+            <input
+              v-model="form.contraseña"
+              type="password"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Ingrese la contraseña"
+            >
+            <p v-if="errors.contraseña" class="mt-1 text-sm text-red-600">{{ errors.contraseña }}</p>
+          </div>
 
-        <!-- Password (solo en creación) -->
-        <div v-if="!isEdit">
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Contraseña *
-          </label>
-          <input
-            v-model="form.password"
-            type="password"
-            required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            placeholder="••••••••"
-          >
-          <p v-if="errors.password" class="mt-1 text-sm text-red-600">{{ errors.password }}</p>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Confirmar contraseña *
+            </label>
+            <input
+              v-model="form.confirmarContraseña"
+              type="password"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Confirme la contraseña"
+            >
+            <p v-if="errors.confirmarContraseña" class="mt-1 text-sm text-red-600">{{ errors.confirmarContraseña }}</p>
+          </div>
         </div>
 
         <!-- Rol -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Rol *
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Rol del usuario *
           </label>
           <select
             v-model="form.rol"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Selecciona un rol</option>
-            <option value="admin">Administrador</option>
+            <option value="administrador">Administrador</option>
             <option value="organizador">Organizador</option>
             <option value="productor">Productor</option>
             <option value="visitante">Visitante</option>
           </select>
           <p v-if="errors.rol" class="mt-1 text-sm text-red-600">{{ errors.rol }}</p>
+        </div>
+
+        <!-- Campos específicos para productor -->
+        <div v-if="form.rol === 'productor'" class="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h4 class="text-md font-medium text-green-800">Información del Productor</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Ubicación
+              </label>
+              <input
+                v-model="form.ubicacion"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Distrito, Provincia"
+              >
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Teléfono
+              </label>
+              <input
+                v-model="form.telefono"
+                type="tel"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="999 999 999"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Especialidad
+            </label>
+            <input
+              v-model="form.especialidad"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Productos que produce (quinua, papa, etc.)"
+            >
+          </div>
         </div>
 
         <!-- Estado -->
@@ -87,102 +159,148 @@
             <input
               v-model="form.activo"
               type="checkbox"
-              class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+              class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             >
             <span class="ml-2 text-sm text-gray-700">Usuario activo</span>
           </label>
         </div>
 
-        <!-- Actions -->
-        <div class="flex justify-end space-x-3 pt-4">
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
           <button
             type="button"
             @click="$emit('close')"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Cancelar
           </button>
           <button
             type="submit"
             :disabled="loading"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="loading" class="flex items-center">
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Guardando...
-            </span>
-            <span v-else>
-              {{ isEdit ? 'Actualizar' : 'Crear' }}
-            </span>
+            {{ loading ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear') }}
           </button>
         </div>
       </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { useAdminStore } from '@/stores/admin'
-import { toast } from '@/utils/toast'
-import { XMarkIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, watch } from 'vue'
 
+// Props
 const props = defineProps({
   user: {
     type: Object,
     default: null
   },
-  isEdit: {
+  show: {
     type: Boolean,
     default: false
   }
 })
 
-const emit = defineEmits(['close', 'saved'])
+// Debug: Watch show prop
+watch(() => props.show, (newShow) => {
+  console.log('UserModal show prop changed:', newShow)
+  if (newShow) {
+    console.log('UserModal should be visible now')
+  }
+})
 
-const adminStore = useAdminStore()
+// Emits
+const emit = defineEmits(['close', 'save'])
 
-// Reactive data
+// Data
 const loading = ref(false)
+const errors = ref({})
+
 const form = ref({
   nombre: '',
   email: '',
-  password: '',
+  contraseña: '',
+  confirmarContraseña: '',
   rol: '',
-  activo: true
+  activo: true,
+  ubicacion: '',
+  telefono: '',
+  especialidad: ''
 })
 
-const errors = ref({})
+// Computed
+const isEdit = computed(() => !!props.user)
+
+// Methods
+const resetForm = () => {
+  form.value = {
+    nombre: '',
+    email: '',
+    contraseña: '',
+    confirmarContraseña: '',
+    rol: '',
+    activo: true,
+    ubicacion: '',
+    telefono: '',
+    especialidad: ''
+  }
+  errors.value = {}
+}
+
+// Watch for user changes
+watch(() => props.user, (newUser) => {
+  if (newUser) {
+    // Populate form with user data
+    form.value = {
+      nombre: newUser.nombre || '',
+      email: newUser.email || '',
+      contraseña: '',
+      confirmarContraseña: '',
+      rol: newUser.rol || '',
+      activo: newUser.activo !== undefined ? newUser.activo : true,
+      ubicacion: newUser.ubicacion || '',
+      telefono: newUser.telefono || '',
+      especialidad: newUser.especialidad || ''
+    }
+  } else {
+    // Reset form for new user
+    resetForm()
+  }
+}, { immediate: true })
 
 // Methods
 const validateForm = () => {
-  const newErrors = {}
+  errors.value = {}
 
   if (!form.value.nombre.trim()) {
-    newErrors.nombre = 'El nombre es requerido'
+    errors.value.nombre = 'El nombre es requerido'
   }
 
   if (!form.value.email.trim()) {
-    newErrors.email = 'El email es requerido'
+    errors.value.email = 'El email es requerido'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    newErrors.email = 'El email no es válido'
+    errors.value.email = 'El formato del email no es válido'
   }
 
-  if (!props.isEdit && !form.value.password.trim()) {
-    newErrors.password = 'La contraseña es requerida'
-  } else if (!props.isEdit && form.value.password.length < 6) {
-    newErrors.password = 'La contraseña debe tener al menos 6 caracteres'
+  if (!isEdit.value) {
+    if (!form.value.contraseña) {
+      errors.value.contraseña = 'La contraseña es requerida'
+    } else if (form.value.contraseña.length < 6) {
+      errors.value.contraseña = 'La contraseña debe tener al menos 6 caracteres'
+    }
+
+    if (form.value.contraseña !== form.value.confirmarContraseña) {
+      errors.value.confirmarContraseña = 'Las contraseñas no coinciden'
+    }
   }
 
   if (!form.value.rol) {
-    newErrors.rol = 'El rol es requerido'
+    errors.value.rol = 'El rol es requerido'
   }
 
-  errors.value = newErrors
-  return Object.keys(newErrors).length === 0
+  return Object.keys(errors.value).length === 0
 }
 
 const handleSubmit = async () => {
@@ -190,84 +308,29 @@ const handleSubmit = async () => {
     return
   }
 
+  loading.value = true
+
   try {
-    loading.value = true
-    let result
-
-    if (props.isEdit) {
-      result = await adminStore.updateUser(props.user._id, {
-        nombre: form.value.nombre,
-        email: form.value.email,
-        password: form.value.password || undefined,
-        rol: form.value.rol,
-        activo: form.value.activo
-      })
-    } else {
-      result = await adminStore.createUser({
-        nombre: form.value.nombre,
-        email: form.value.email,
-        password: form.value.password,
-        rol: form.value.rol,
-        activo: form.value.activo
-      })
+    const userData = { ...form.value }
+    
+    // Remove password confirmation from data
+    delete userData.confirmarContraseña
+    
+    // If editing, remove password if empty
+    if (isEdit.value && !userData.contraseña) {
+      delete userData.contraseña
+    }
+    
+    // Add ID if editing
+    if (isEdit.value && props.user) {
+      userData._id = props.user._id
     }
 
-    if (result.success) {
-      emit('saved')
-    } else {
-      // El error ya se mostró en el store via toast, pero manejamos errores específicos
-      if (result.errors && result.errors.length > 0) {
-        const newErrors = {}
-        result.errors.forEach(error => {
-          newErrors[error.path] = error.msg
-        })
-        errors.value = newErrors
-      }
-    }
+    emit('save', userData)
   } catch (error) {
     console.error('Error saving user:', error)
-    toast.error(props.isEdit ? 'Error al actualizar usuario' : 'Error al crear usuario')
   } finally {
     loading.value = false
   }
 }
-
-const resetForm = () => {
-  form.value = {
-    nombre: '',
-    email: '',
-    password: '',
-    rol: '',
-    activo: true
-  }
-  errors.value = {}
-}
-
-// Watchers
-watch(() => props.user, (newUser) => {
-  if (newUser && props.isEdit) {
-    form.value = {
-      nombre: newUser.nombre || '',
-      email: newUser.email || '',
-      password: '',
-      rol: newUser.rol || '',
-      activo: newUser.activo !== false
-    }
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
-
-// Lifecycle
-onMounted(() => {
-  if (props.user && props.isEdit) {
-    form.value = {
-      nombre: props.user.nombre || '',
-      email: props.user.email || '',
-      password: '',
-      rol: props.user.rol || '',
-      activo: props.user.activo !== false
-    }
-  }
-})
 </script>

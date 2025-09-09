@@ -56,13 +56,61 @@ node server.js
 
 ### 2️⃣ Poblar Base de Datos (Opcional)
 ```bash
-# Para crear datos de prueba
+# Para crear datos de prueba básicos
 seed-database.bat
+
+# Para agregar datos adicionales y métricas realistas
+populate-additional-data.bat
 ```
 
-### 3️⃣ Verificar Funcionamiento
-- Abrir: http://localhost:3000
-- Estado: http://localhost:3000/health
+### 3️⃣ Iniciar Frontend
+```bash
+# Navegar al directorio frontend
+cd frontend
+
+# Instalar dependencias (primera vez)
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
+```
+
+### 4️⃣ Acceder al Sistema
+- **Local:** http://localhost:5173
+- **Red Local:** http://[TU_IP]:5173
+
+## 📊 Dashboard Mejorado
+
+### 🎛️ **Características por Rol:**
+
+#### 👨‍💼 **Administrador**
+- Estadísticas completas del sistema
+- Distribución de usuarios por rol
+- Métricas de seguridad en tiempo real
+- Gestión de sesiones activas
+- Actividad reciente del sistema
+
+#### 🥘 **Productor**
+- Resumen de productos registrados
+- Productos activos vs. sin stock
+- Valoraciones promedio
+- Vistas mensuales
+- Acciones rápidas para gestión
+
+#### 📊 **Organizador**
+- Análisis de encuestas de satisfacción
+- Métricas de participación
+- Reportes generados
+- Gráficos de satisfacción
+- Herramientas de gestión
+
+#### 👥 **Visitante**
+- Productos disponibles para explorar
+- Mis encuestas completadas
+- Productos favoritos
+- Tiempo de sesión activa
+- Productos más populares
+- Recomendaciones personalizadas
 
 ## 🔐 Sistema de Autenticación
 
@@ -194,14 +242,19 @@ FERIAGASTRONÓMICA/
 - ✅ **Sistema de autenticación JWT**
 - ✅ **Seguridad implementada**
 - ✅ **Scripts de inicio automatizados**
+- ✅ **Dashboard mejorado con métricas reales**
+- ✅ **Frontend Vue.js con interfaces específicas por rol**
+- ✅ **Estadísticas en tiempo real**
+- ✅ **Visualizaciones de datos mejoradas**
 
 ## 🚀 Próximos Pasos
 
-1. **Frontend Angular** (Cliente - Máquina B)
-2. **Configuración red local**
-3. **Testing integral**
-4. **Documentación API**
-5. **Despliegue producción**
+1. **Integración de gráficos avanzados** (Chart.js)
+2. **Notificaciones en tiempo real**
+3. **Sistema de favoritos para visitantes**
+4. **Reportes en PDF**
+5. **API de geolocalización**
+6. **Testing integral automatizado**
 
 ## 🆘 Solución de Problemas
 

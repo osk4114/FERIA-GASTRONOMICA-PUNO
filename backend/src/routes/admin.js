@@ -8,7 +8,11 @@ const {
   getAllUsers,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getAllRoles,
+  changeUserRole,
+  toggleUserStatus,
+  getUserStats
 } = require('../controllers/adminController');
 const { auth, requireRole } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
@@ -93,6 +97,9 @@ router.delete('/sessions/:sessionId', terminateSession);
 router.delete('/users/:userId/sessions', terminateUserSessions);
 
 // === RUTAS DE GESTIÓN DE USUARIOS ===
+// Obtener estadísticas de usuarios por rol
+router.get('/user-stats', getUserStats);
+
 // Obtener todos los usuarios (con paginación y filtros)
 router.get('/users', getAllUsers);
 
@@ -104,5 +111,19 @@ router.put('/users/:userId', updateUserValidation, updateUser);
 
 // Eliminar usuario
 router.delete('/users/:userId', deleteUser);
+
+// === RUTAS DE GESTIÓN DE ROLES ===
+// Obtener todos los roles disponibles
+router.get('/roles', getAllRoles);
+
+// Cambiar rol de usuario
+router.put('/users/:id/role', [
+  body('rol')
+    .isIn(['administrador', 'organizador', 'productor', 'visitante'])
+    .withMessage('Rol inválido')
+], changeUserRole);
+
+// Activar/Desactivar usuario
+router.put('/users/:id/status', toggleUserStatus);
 
 module.exports = router;

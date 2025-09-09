@@ -11,7 +11,7 @@
           <button
             @click="refreshSessions"
             :disabled="loading"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             <svg :class="['h-5 w-5 mr-2', { 'animate-spin': loading }]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -19,7 +19,7 @@
             Actualizar
           </button>
           <button
-            @click="terminateAllConfirm"
+            @click="showTerminateAllModal = true"
             :disabled="adminStore.activeSessions.length === 0"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -72,17 +72,17 @@
               v-model="filters.search"
               type="text"
               placeholder="Nombre, email..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             >
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Rol</label>
             <select
               v-model="filters.role"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">Todos los roles</option>
-              <option value="administrador">Administrador</option>
+              <option value="admin">Administrador</option>
               <option value="organizador">Organizador</option>
               <option value="productor">Productor</option>
               <option value="visitante">Visitante</option>
@@ -91,7 +91,7 @@
           <div class="flex items-end">
             <button
               @click="clearFilters"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Limpiar
             </button>
@@ -156,9 +156,9 @@
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10">
                       <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                      <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
                       </div>
                     </div>
                     <div class="ml-4">
@@ -191,7 +191,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    @click.stop="terminateSessionConfirm(session)"
+                    @click.stop="confirmTerminate(session)"
                     class="text-red-600 hover:text-red-900 inline-flex items-center px-2 py-1 border border-red-300 rounded hover:bg-red-50"
                     title="Terminar sesión"
                   >
@@ -215,11 +215,9 @@
                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div class="flex items-center space-x-3">
               <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
+                <svg class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-900">{{ session.user.nombre }}</p>
@@ -235,6 +233,28 @@
           </div>
         </div>
       </div>
+
+      <!-- Terminate Session Modal -->
+      <ConfirmModal
+        v-if="showTerminateModal"
+        title="Terminar Sesión"
+        :message="`¿Estás seguro de que deseas terminar la sesión de ${sessionToTerminate?.user.nombre}?`"
+        confirm-text="Terminar"
+        confirm-class="bg-red-600 hover:bg-red-700"
+        @confirm="terminateSession"
+        @cancel="showTerminateModal = false"
+      />
+
+      <!-- Terminate All Sessions Modal -->
+      <ConfirmModal
+        v-if="showTerminateAllModal"
+        title="Terminar Todas las Sesiones"
+        message="¿Estás seguro de que deseas terminar todas las sesiones activas? Esta acción no se puede deshacer."
+        confirm-text="Terminar Todas"
+        confirm-class="bg-red-600 hover:bg-red-700"
+        @confirm="terminateAllSessions"
+        @cancel="showTerminateAllModal = false"
+      />
     </div>
   </AppLayout>
 </template>
@@ -244,13 +264,19 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAdminStore } from '@/stores/admin'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import StatCard from '@/components/ui/StatCard.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import { toast } from '@/utils/toast'
+
+// No necesitamos importar iconos externos, usaremos SVG simples
 
 const adminStore = useAdminStore()
 
 // Reactive data
 const loading = ref(false)
 const statsLoading = ref(true)
+const showTerminateModal = ref(false)
+const showTerminateAllModal = ref(false)
+const sessionToTerminate = ref(null)
 const refreshInterval = ref(null)
 
 const filters = ref({
@@ -370,9 +396,10 @@ const clearFilters = () => {
   }
 }
 
-const terminateSessionConfirm = (session) => {
-  console.log('terminateSessionConfirm called with session:', session)
+const confirmTerminate = (session) => {
+  console.log('confirmTerminate called with session:', session)
   
+  // Para debugging, vamos a mostrar un confirm del navegador primero
   if (confirm(`¿Estás seguro de que deseas terminar la sesión de ${session.user.nombre}?`)) {
     terminateSessionDirect(session)
   }
@@ -385,6 +412,7 @@ const terminateSessionDirect = async (session) => {
     console.log('terminateSessionDirect result:', result)
     if (result.success) {
       toast.success(`Sesión de ${session.user.nombre} terminada exitosamente`)
+      // Refrescar las sesiones
       await refreshSessions()
     } else {
       toast.error('Error al terminar la sesión')
@@ -395,9 +423,21 @@ const terminateSessionDirect = async (session) => {
   }
 }
 
-const terminateAllConfirm = () => {
-  if (confirm(`¿Estás seguro de que deseas terminar todas las ${adminStore.activeSessions.length} sesiones activas?`)) {
-    terminateAllSessions()
+const terminateSession = async () => {
+  try {
+    console.log('terminateSession called with:', sessionToTerminate.value)
+    const result = await adminStore.terminateSession(sessionToTerminate.value.sessionId)
+    console.log('terminateSession result:', result)
+    if (result.success) {
+      toast.success(`Sesión de ${sessionToTerminate.value.user.nombre} terminada exitosamente`)
+      showTerminateModal.value = false
+      sessionToTerminate.value = null
+      // Refrescar las sesiones
+      await refreshSessions()
+    }
+  } catch (error) {
+    console.error('Error terminating session:', error)
+    toast.error('Error al terminar la sesión')
   }
 }
 
@@ -413,6 +453,8 @@ const terminateAllSessions = async () => {
       }
     }
     
+    showTerminateAllModal.value = false
+    
     if (successCount === sessions.length) {
       toast.success(`Todas las ${successCount} sesiones han sido terminadas`)
     } else if (successCount > 0) {
@@ -421,11 +463,13 @@ const terminateAllSessions = async () => {
       toast.error('No se pudieron terminar las sesiones')
     }
     
+    // Refrescar las sesiones
     await refreshSessions()
     
   } catch (error) {
     console.error('Error terminating all sessions:', error)
     toast.error('Error al terminar las sesiones')
+    showTerminateAllModal.value = false
   }
 }
 

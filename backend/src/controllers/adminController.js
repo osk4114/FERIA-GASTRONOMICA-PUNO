@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Survey = require('../models/Survey');
 const { validationResult } = require('express-validator');
 const { generateToken, calculateExpirationDate } = require('../utils/jwt');
+const bcrypt = require('bcryptjs');
 
 // @desc    Obtener estadísticas del dashboard
 // @route   GET /api/admin/dashboard-stats
@@ -478,6 +479,207 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Obtener todos los roles disponibles
+// @route   GET /api/admin/roles
+// @access  Private (Admin only)
+const getAllRoles = async (req, res) => {
+  try {
+    const roles = [
+      { value: 'administrador', label: 'Administrador', description: 'Acceso completo al sistema' },
+      { value: 'organizador', label: 'Organizador', description: 'Gestión de eventos y estadísticas' },
+      { value: 'productor', label: 'Productor', description: 'Gestión de productos gastronómicos' },
+      { value: 'visitante', label: 'Visitante', description: 'Exploración y encuestas' }
+    ];
+
+    res.json({
+      success: true,
+      data: roles
+    });
+  } catch (error) {
+    console.error('Error obteniendo roles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// @desc    Cambiar rol de usuario
+// @route   PUT /api/admin/users/:id/role
+// @access  Private (Admin only)
+const changeUserRole = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos de entrada inválidos',
+        errors: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { rol } = req.body;
+
+    // Verificar que el rol sea válido
+    const validRoles = ['administrador', 'organizador', 'productor', 'visitante'];
+    if (!validRoles.includes(rol)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rol inválido'
+      });
+    }
+
+    // Buscar el usuario
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    // No permitir que el admin cambie su propio rol
+    if (user._id.toString() === req.user.id && user.rol === 'administrador') {
+      return res.status(400).json({
+        success: false,
+        message: 'No puedes cambiar tu propio rol de administrador'
+      });
+    }
+
+    // Actualizar el rol
+    user.rol = rol;
+    await user.save();
+
+    // Invalidar las sesiones activas del usuario para que tome efecto el cambio de rol
+    await Session.updateMany(
+      { userId: user._id, isActive: true },
+      { isActive: false }
+    );
+
+    res.json({
+      success: true,
+      message: 'Rol de usuario actualizado exitosamente',
+      data: {
+        id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        rol: user.rol,
+        activo: user.activo
+      }
+    });
+
+  } catch (error) {
+    console.error('Error cambiando rol de usuario:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// @desc    Activar/Desactivar usuario
+// @route   PUT /api/admin/users/:id/status
+// @access  Private (Admin only)
+const toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Buscar el usuario
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    // No permitir desactivar al propio admin
+    if (user._id.toString() === req.user.id && user.rol === 'administrador') {
+      return res.status(400).json({
+        success: false,
+        message: 'No puedes desactivar tu propia cuenta de administrador'
+      });
+    }
+
+    // Cambiar el estado
+    user.activo = !user.activo;
+    await user.save();
+
+    // Si se desactiva, invalidar sesiones
+    if (!user.activo) {
+      await Session.updateMany(
+        { userId: user._id, isActive: true },
+        { isActive: false }
+      );
+    }
+
+    res.json({
+      success: true,
+      message: `Usuario ${user.activo ? 'activado' : 'desactivado'} exitosamente`,
+      data: {
+        id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        rol: user.rol,
+        activo: user.activo
+      }
+    });
+
+  } catch (error) {
+    console.error('Error cambiando estado de usuario:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
+// @desc    Obtener estadísticas de usuarios por rol
+// @route   GET /api/admin/user-stats
+// @access  Private (Admin only)
+const getUserStats = async (req, res) => {
+  try {
+    const stats = await User.aggregate([
+      {
+        $group: {
+          _id: '$rol',
+          total: { $sum: 1 },
+          activos: { $sum: { $cond: ['$activo', 1, 0] } },
+          inactivos: { $sum: { $cond: ['$activo', 0, 1] } }
+        }
+      }
+    ]);
+
+    const roleStats = {
+      administrador: { total: 0, activos: 0, inactivos: 0 },
+      organizador: { total: 0, activos: 0, inactivos: 0 },
+      productor: { total: 0, activos: 0, inactivos: 0 },
+      visitante: { total: 0, activos: 0, inactivos: 0 }
+    };
+
+    stats.forEach(stat => {
+      roleStats[stat._id] = {
+        total: stat.total,
+        activos: stat.activos,
+        inactivos: stat.inactivos
+      };
+    });
+
+    res.json({
+      success: true,
+      data: roleStats
+    });
+
+  } catch (error) {
+    console.error('Error obteniendo estadísticas de usuarios:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getActiveSessions,
@@ -486,5 +688,9 @@ module.exports = {
   getAllUsers,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getAllRoles,
+  changeUserRole,
+  toggleUserStatus,
+  getUserStats
 };
