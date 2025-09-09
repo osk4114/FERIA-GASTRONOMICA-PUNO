@@ -14,27 +14,72 @@ const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const { apiLimiter } = require('./src/middleware/rateLimiter');
 
+// Importar modelo de sesiones para limpieza
+const Session = require('./src/models/Session');
+
 // Crear aplicación Express
 const app = express();
 
 // Conectar a MongoDB
-connectDB();
+connectDB().then(async () => {
+  // Limpiar sesiones expiradas al iniciar el servidor
+  try {
+    console.log('🧹 Limpiando sesiones expiradas...');
+    const result = await Session.cleanExpiredSessions();
+    console.log(`✅ ${result.deletedCount} sesiones expiradas eliminadas`);
+    
+    // También invalidar todas las sesiones activas (reinicio del servidor)
+    const invalidatedResult = await Session.updateMany(
+      { isActive: true },
+      { 
+        isActive: false,
+        invalidatedAt: new Date(),
+        invalidationReason: 'Servidor reiniciado'
+      }
+    );
+    console.log(`🔄 ${invalidatedResult.modifiedCount} sesiones activas invalidadas por reinicio`);
+  } catch (error) {
+    console.error('❌ Error limpiando sesiones:', error.message);
+  }
+});
 
 // Configuración de seguridad
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Configuración de CORS
+// Configuración de CORS para red local
 app.use(cors({
-  origin: [
-    'http://localhost:4200',
-    'http://127.0.0.1:4200',
-    process.env.FRONTEND_URL
-  ],
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (apps móviles, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Permitir localhost y 127.0.0.1 en cualquier puerto
+    if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1):\d+$/)) {
+      return callback(null, true);
+    }
+    
+    // Permitir IPs de red local (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    if (origin.match(/^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):\d+$/)) {
+      return callback(null, true);
+    }
+    
+    // Si tienes una URL específica de frontend, también la permitimos
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    // Para desarrollo, permite cualquier origen
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    callback(new Error('No permitido por CORS'));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200
 }));
 
 // Rate limiting
@@ -56,6 +101,8 @@ const userRoutes = require('./src/routes/users');
 const productRoutes = require('./src/routes/products');
 const surveyRoutes = require('./src/routes/surveys');
 const reportRoutes = require('./src/routes/reports');
+const sessionRoutes = require('./src/routes/sessions');
+const adminRoutes = require('./src/routes/admin');
 
 // Ruta de prueba
 app.get('/', (req, res) => {
@@ -69,7 +116,9 @@ app.get('/', (req, res) => {
       users: '/api/users',
       products: '/api/products',
       surveys: '/api/surveys',
-      reports: '/api/reports'
+      reports: '/api/reports',
+      sessions: '/api/sessions',
+      admin: '/api/admin'
     }
   });
 });
@@ -92,6 +141,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/surveys', surveyRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/sessions', sessionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Manejo de rutas no encontradas
 app.all('*', (req, res) => {
@@ -106,14 +157,15 @@ app.use(errorHandler);
 
 // Puerto del servidor
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.LOCAL_IP || 'localhost';
+const HOST = process.env.HOST || '0.0.0.0'; // Escuchar en todas las interfaces de red
 
 // Iniciar servidor
 app.listen(PORT, HOST, () => {
   console.log('🚀=================================');
   console.log(`🎯 Servidor corriendo en: http://${HOST}:${PORT}`);
   console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📡 Red local: http://${HOST}:${PORT}`);
+  console.log(`📡 Acceso local: http://localhost:${PORT}`);
+  console.log(`🌐 Acceso red local: http://[TU_IP]:${PORT}`);
   console.log('🚀=================================');
 });
 

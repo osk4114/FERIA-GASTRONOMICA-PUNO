@@ -3,9 +3,13 @@ const { body } = require('express-validator');
 const {
   register,
   login,
+  forceLogin,
   getProfile,
   updateProfile,
-  changePassword
+  changePassword,
+  logout,
+  verifySession,
+  logoutAll
 } = require('../controllers/authController');
 const { auth } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
@@ -22,8 +26,7 @@ const registerValidation = [
   
   body('email')
     .isEmail()
-    .withMessage('Email inválido')
-    .normalizeEmail(),
+    .withMessage('Email inválido'),
   
   body('contraseña')
     .isLength({ min: 6 })
@@ -48,8 +51,7 @@ const registerValidation = [
 const loginValidation = [
   body('email')
     .isEmail()
-    .withMessage('Email inválido')
-    .normalizeEmail(),
+    .withMessage('Email inválido'),
   
   body('contraseña')
     .notEmpty()
@@ -69,10 +71,14 @@ const changePasswordValidation = [
 // Rutas públicas
 router.post('/register', authLimiter, registerValidation, register);
 router.post('/login', authLimiter, loginValidation, login);
+router.post('/force-login', authLimiter, loginValidation, forceLogin);
 
 // Rutas privadas (requieren autenticación)
 router.get('/profile', auth, getProfile);
 router.put('/profile', auth, updateProfile);
 router.put('/change-password', auth, changePasswordValidation, changePassword);
+router.post('/logout', auth, logout);
+router.get('/verify-session', auth, verifySession);
+router.post('/logout-all', auth, logoutAll);
 
 module.exports = router;
