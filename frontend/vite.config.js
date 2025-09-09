@@ -23,7 +23,8 @@ export default defineConfig({
     cors: true,      // Habilitar CORS
     // Configuración adicional de red
     hmr: {
-      host: 'localhost', // Para Hot Module Replacement
+      host: '10.1.3.14', // IP de tu máquina para Hot Module Replacement
+      port: 5173
     }
   },
   preview: {
