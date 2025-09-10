@@ -50,8 +50,8 @@ const createUserValidation = [
   
   body('telefono')
     .optional()
-    .isMobilePhone('es-PE')
-    .withMessage('Teléfono inválido')
+    .matches(/^[0-9]{9}$/)
+    .withMessage('El teléfono debe tener 9 dígitos numéricos')
 ];
 
 // Validaciones para actualizar usuario
@@ -78,8 +78,8 @@ const updateUserValidation = [
   
   body('telefono')
     .optional()
-    .isMobilePhone('es-PE')
-    .withMessage('Teléfono inválido')
+    .matches(/^[0-9]{9}$/)
+    .withMessage('El teléfono debe tener 9 dígitos numéricos')
 ];
 
 // === RUTAS DE DASHBOARD ===

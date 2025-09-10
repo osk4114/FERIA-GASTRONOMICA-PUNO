@@ -177,14 +177,48 @@ export const useAuthStore = defineStore('auth', () => {
   const register = async (userData) => {
     try {
       isLoading.value = true
+      
+      console.log('🚀 Store enviando registro:', userData)
+      
       const response = await axios.post(`${API_BASE_URL}/auth/register`, userData)
       
       if (response.data.success) {
-        toast.success('Usuario registrado exitosamente')
-        return { success: true, user: response.data.user }
+        // El registro exitoso ya incluye el token, así que iniciamos sesión directamente
+        const { user: userData, token: userToken } = response.data.data
+        
+        // Establecer el token y usuario
+        token.value = userToken
+        user.value = userData
+        
+        // Guardar en localStorage
+        localStorage.setItem('token', userToken)
+        axios.defaults.headers.common['Authorization'] = `Bearer ${userToken}`
+        
+        sessionStatus.value = 'active'
+        
+        toast.success(`¡Bienvenido ${userData.nombre}! Cuenta creada exitosamente`)
+        return { success: true, user: userData, autoLogin: true }
       }
     } catch (error) {
-      const message = error.response?.data?.message || 'Error en el registro'
+      console.error('❌ Error en registro:', error.response?.data)
+      
+      let message = 'Error en el registro'
+      
+      if (error.response?.status === 400) {
+        // Error de validación
+        if (error.response.data.errors) {
+          // Errores de validación específicos
+          const firstError = error.response.data.errors[0]
+          message = firstError.msg || firstError.message || error.response.data.message
+        } else {
+          message = error.response.data.message || 'Datos inválidos'
+        }
+      } else if (error.response?.status === 409) {
+        message = 'El email ya está registrado'
+      } else {
+        message = error.response?.data?.message || 'Error del servidor'
+      }
+      
       toast.error(message)
       return { success: false, message }
     } finally {

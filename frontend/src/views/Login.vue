@@ -10,12 +10,12 @@
           Feria Gastronómica Puno
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
-          Inicia sesión en tu cuenta
+          {{ showRegisterForm ? 'Crear nueva cuenta' : 'Inicia sesión en tu cuenta' }}
         </p>
       </div>
 
       <!-- Login Form -->
-      <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
+      <form v-if="!showRegisterForm" class="mt-8 space-y-6" @submit.prevent="handleLogin">
         <div class="space-y-4">
           <!-- Email -->
           <div>
@@ -139,79 +139,158 @@
           </div>
         </div>
 
-        <!-- Quick access buttons -->
-        <div class="mt-6">
-          <div class="text-center text-sm text-gray-600 mb-4">
-            Acceso rápido para pruebas:
-          </div>
-          <div class="grid grid-cols-1 gap-2">
-            <button
-              type="button"
-              @click="quickLogin('admin')"
-              class="btn-secondary w-full text-sm"
-              :disabled="authStore.isLoading"
-            >
-              🔑 Admin (admin@feriapuno.com)
-            </button>
-            <button
-              type="button"
-              @click="quickLogin('organizador')"
-              class="btn-warning w-full text-sm"
-              :disabled="authStore.isLoading"
-            >
-              👨‍💼 Organizador (maria.condori@gmail.com)
-            </button>
-            <button
-              type="button"
-              @click="quickLogin('visitante')"
-              class="btn-success w-full text-sm"
-              :disabled="authStore.isLoading"
-            >
-              👤 Visitante (juan.visitante@gmail.com)
-            </button>
-            <button
-              type="button"
-              @click="quickLogin('productor1')"
-              class="btn-info w-full text-sm"
-              :disabled="authStore.isLoading"
-            >
-              🏪 Productora Rosa (rosa.mamani@gmail.com)
-            </button>
-            <button
-              type="button"
-              @click="quickLogin('productor2')"
-              class="btn-info w-full text-sm"
-              :disabled="authStore.isLoading"
-            >
-              🏪 Productor Carlos (carlos.quispe@gmail.com)
-            </button>
-          </div>
-        </div>
       </form>
 
-      <!-- Session Status -->
-      <div class="mt-8 p-4 bg-gray-100 rounded-lg">
-        <h3 class="text-sm font-medium text-gray-700 mb-2">Estado de la sesión:</h3>
-        <div class="text-sm text-gray-600">
-          <div class="flex items-center justify-between">
-            <span>Estado:</span>
-            <span :class="[
-              'px-2 py-1 rounded text-xs font-medium',
-              authStore.sessionStatus === 'active' ? 'bg-success-100 text-success-700' : 'bg-gray-200 text-gray-700'
-            ]">
-              {{ authStore.sessionStatus === 'active' ? 'Activa' : 'Inactiva' }}
-            </span>
+      <!-- Register link -->
+      <div v-if="!showRegisterForm" class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          ¿No tienes una cuenta?
+          <button
+            type="button"
+            @click="showRegisterForm = true"
+            class="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200"
+          >
+            Regístrate aquí
+          </button>
+        </p>
+      </div>
+
+      <!-- Register Form -->
+      <form v-if="showRegisterForm" class="mt-8 space-y-6" @submit.prevent="handleRegister">
+        <div class="space-y-4">
+          <!-- Nombre completo -->
+          <div>
+            <label for="reg-nombre" class="block text-sm font-medium text-gray-700">
+              Nombre completo
+            </label>
+            <input
+              id="reg-nombre"
+              v-model="registerForm.nombre"
+              type="text"
+              required
+              class="input-field mt-1"
+              placeholder="Tu nombre completo"
+            />
           </div>
-          <div v-if="authStore.isAuthenticated" class="flex items-center justify-between mt-1">
-            <span>Usuario:</span>
-            <span class="font-medium">{{ authStore.userName }}</span>
+
+          <!-- Email -->
+          <div>
+            <label for="reg-email" class="block text-sm font-medium text-gray-700">
+              Correo electrónico
+            </label>
+            <input
+              id="reg-email"
+              v-model="registerForm.email"
+              type="email"
+              required
+              class="input-field mt-1"
+              placeholder="tu@email.com"
+            />
           </div>
-          <div v-if="authStore.isAuthenticated" class="flex items-center justify-between mt-1">
-            <span>Rol:</span>
-            <span class="font-medium capitalize">{{ authStore.userRole }}</span>
+
+          <!-- Password -->
+          <div>
+            <label for="reg-password" class="block text-sm font-medium text-gray-700">
+              Contraseña
+            </label>
+            <input
+              id="reg-password"
+              v-model="registerForm.password"
+              type="password"
+              required
+              class="input-field mt-1"
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+
+          <!-- Role -->
+          <div>
+            <label for="reg-role" class="block text-sm font-medium text-gray-700">
+              Tipo de cuenta
+            </label>
+            <select
+              id="reg-role"
+              v-model="registerForm.role"
+              required
+              class="input-field mt-1"
+            >
+              <option value="">Selecciona tu rol</option>
+              <option value="visitante">Visitante</option>
+              <option value="productor">Productor</option>
+            </select>
+          </div>
+
+          <!-- Campos adicionales para productor -->
+          <div v-if="registerForm.role === 'productor'" class="space-y-4 pt-4 border-t">
+            <div>
+              <label for="reg-negocio" class="block text-sm font-medium text-gray-700">
+                Nombre del negocio
+              </label>
+              <input
+                id="reg-negocio"
+                v-model="registerForm.negocio"
+                type="text"
+                required
+                class="input-field mt-1"
+                placeholder="Nombre de tu negocio"
+              />
+            </div>
+            
+            <div>
+              <label for="reg-telefono" class="block text-sm font-medium text-gray-700">
+                Teléfono
+              </label>
+              <input
+                id="reg-telefono"
+                v-model="registerForm.telefono"
+                type="tel"
+                required
+                class="input-field mt-1"
+                placeholder="Tu número de teléfono"
+              />
+            </div>
+            
+            <div>
+              <label for="reg-direccion" class="block text-sm font-medium text-gray-700">
+                Dirección
+              </label>
+              <input
+                id="reg-direccion"
+                v-model="registerForm.direccion"
+                type="text"
+                required
+                class="input-field mt-1"
+                placeholder="Tu dirección"
+              />
+            </div>
           </div>
         </div>
-      </div>
+
+        <!-- Botones -->
+        <div class="flex space-x-3">
+          <button
+            type="submit"
+            :disabled="authStore.isLoading"
+            class="btn-primary flex-1"
+            :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }"
+          >
+            <ArrowPathIcon 
+              v-if="authStore.isLoading"
+              class="animate-spin -ml-1 mr-2 h-4 w-4"
+            />
+            {{ authStore.isLoading ? 'Registrando...' : 'Crear cuenta' }}
+          </button>
+          <button
+            type="button"
+            @click="showRegisterForm = false"
+            :disabled="authStore.isLoading"
+            class="btn-secondary flex-1"
+            :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }"
+          >
+            Volver al login
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
@@ -220,6 +299,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from '@/utils/toast'
 import {
   CubeIcon,
   EyeIcon,
@@ -234,11 +314,22 @@ const authStore = useAuthStore()
 
 const showPassword = ref(false)
 const existingSessionInfo = ref(null)
+const showRegisterForm = ref(false)
 
 const form = reactive({
   email: '',
   password: '',
   rememberMe: false
+})
+
+const registerForm = reactive({
+  nombre: '',
+  email: '',
+  password: '',
+  role: '',
+  negocio: '',
+  telefono: '',
+  direccion: ''
 })
 
 const errors = reactive({
@@ -312,6 +403,124 @@ const clearExistingSessionInfo = () => {
   existingSessionInfo.value = null
 }
 
+const validateRegisterForm = () => {
+  // Validar campos básicos
+  if (!registerForm.nombre.trim()) {
+    toast.error('El nombre es obligatorio')
+    return false
+  }
+  
+  if (!registerForm.email.trim()) {
+    toast.error('El email es obligatorio')
+    return false
+  }
+  
+  if (!registerForm.email.includes('@')) {
+    toast.error('Ingresa un email válido')
+    return false
+  }
+  
+  if (!registerForm.password.trim()) {
+    toast.error('La contraseña es obligatoria')
+    return false
+  }
+  
+  if (registerForm.password.length < 6) {
+    toast.error('La contraseña debe tener al menos 6 caracteres')
+    return false
+  }
+  
+  if (!registerForm.role) {
+    toast.error('Selecciona un tipo de cuenta')
+    return false
+  }
+  
+  // Validar campos específicos de productor
+  if (registerForm.role === 'productor') {
+    if (!registerForm.negocio.trim()) {
+      toast.error('El nombre del negocio es obligatorio para productores')
+      return false
+    }
+    
+    if (!registerForm.telefono.trim()) {
+      toast.error('El teléfono es obligatorio para productores')
+      return false
+    }
+    
+    if (!registerForm.direccion.trim()) {
+      toast.error('La dirección es obligatoria para productores')
+      return false
+    }
+  }
+  
+  return true
+}
+
+const handleRegister = async () => {
+  // Prevenir múltiples envíos
+  if (authStore.isLoading) {
+    console.log('⏳ Registro ya en proceso, ignorando...')
+    return
+  }
+
+  // Validar formulario antes de enviar
+  if (!validateRegisterForm()) {
+    return
+  }
+
+  try {
+    const userData = {
+      nombre: registerForm.nombre,
+      email: registerForm.email,
+      contraseña: registerForm.password, // Mapear password -> contraseña para el backend
+      rol: registerForm.role // Mapear role -> rol para el backend
+    }
+
+    // Agregar campos específicos de productor si aplica
+    if (registerForm.role === 'productor') {
+      userData.negocio = registerForm.negocio
+      userData.telefono = registerForm.telefono
+      userData.direccion = registerForm.direccion
+    }
+
+    console.log('🚀 Frontend enviando registro:', userData)
+    
+    const result = await authStore.register(userData)
+    
+    if (result.success) {
+      // Guardar credenciales antes de limpiar el formulario
+      const emailToLogin = registerForm.email
+      const passwordToLogin = registerForm.password
+      
+      showRegisterForm.value = false
+      // Limpiar formulario de registro
+      Object.keys(registerForm).forEach(key => {
+        registerForm[key] = ''
+      })
+      
+      // Si el registro incluyó autenticación automática, redirigir al dashboard
+      if (result.autoLogin) {
+        const redirect = route.query.redirect || '/dashboard'
+        router.push(redirect)
+      } else {
+        // Si no, preparar para login manual
+        toast.success('¡Cuenta creada exitosamente!')
+        
+        form.email = emailToLogin
+        form.password = passwordToLogin
+        
+        // Esperar un momento antes del login automático
+        setTimeout(async () => {
+          await handleLogin()
+        }, 1000)
+      }
+    }
+  } catch (error) {
+    console.error('Error en registro:', error)
+    toast.error('Error inesperado en el registro')
+  }
+}
+
 const formatDate = (dateString) => {
   if (!dateString) return 'Fecha desconocida'
   return new Date(dateString).toLocaleString('es-PE', {
@@ -321,29 +530,6 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-const quickLogin = async (role) => {
-  const credentials = {
-    admin: { email: 'admin@feriapuno.com', password: 'admin123' },
-    organizador: { email: 'maria.condori@gmail.com', password: 'organizador123' },
-    visitante: { email: 'juan.visitante@gmail.com', password: 'visitante123' },
-    productor1: { email: 'rosa.mamani@gmail.com', password: 'productor123' },
-    productor2: { email: 'carlos.quispe@gmail.com', password: 'productor123' }
-  }
-  
-  const creds = credentials[role]
-  console.log('🎯 QuickLogin seleccionado:', role, creds);
-  
-  if (creds) {
-    form.email = creds.email
-    form.password = creds.password
-    console.log('📝 Formulario actualizado:', {
-      email: form.email,
-      password: form.password ? '[PRESENTE]' : '[AUSENTE]'
-    });
-    await handleLogin()
-  }
 }
 
 onMounted(() => {

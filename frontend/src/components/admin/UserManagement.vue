@@ -327,7 +327,7 @@ const authStore = useAuthStore()
 const toast = useToast()
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://172.80.15.89:3000/api'
 
 const apiCall = async (url, options = {}) => {
   const response = await fetch(`${API_BASE_URL}${url}`, {

@@ -176,6 +176,18 @@
                     >
                       {{ user.activo ? 'Desactivar' : 'Activar' }}
                     </button>
+                    <button
+                      @click="deleteUser(user)"
+                      :disabled="user.rol === 'administrador' && user._id === authStore.user?.id"
+                      :class="[
+                        'text-red-600 hover:text-red-900',
+                        (user.rol === 'administrador' && user._id === authStore.user?.id) 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : ''
+                      ]"
+                    >
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -243,11 +255,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAdminStore } from '@/stores/admin'
+import { useAuthStore } from '@/stores/auth'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import UserModal from '@/components/admin/UserModal.vue'
 import { toast } from '@/utils/toast'
 
 const adminStore = useAdminStore()
+const authStore = useAuthStore()
 
 // Reactive data
 const loading = ref(false)
@@ -360,6 +374,38 @@ const toggleUserStatus = async (user) => {
   }
 }
 
+const deleteUser = async (user) => {
+  // Prevenir que el admin se elimine a sí mismo
+  if (user.rol === 'administrador' && user._id === authStore.user?.id) {
+    toast.error('No puedes eliminar tu propia cuenta de administrador')
+    return
+  }
+
+  // Confirmar eliminación
+  const confirmed = confirm(
+    `¿Estás seguro de que quieres eliminar al usuario "${user.nombre}"?\n\n` +
+    `Email: ${user.email}\n` +
+    `Rol: ${user.rol}\n\n` +
+    `Esta acción NO se puede deshacer.`
+  )
+
+  if (!confirmed) return
+
+  try {
+    const result = await adminStore.deleteUser(user._id)
+    if (result.success) {
+      toast.success(`Usuario "${user.nombre}" eliminado exitosamente`)
+      // Recargar la lista de usuarios
+      await loadUsers()
+    } else {
+      toast.error(result.message || 'Error al eliminar usuario')
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    toast.error('Error inesperado al eliminar usuario')
+  }
+}
+
 const closeModal = () => {
   console.log('Closing modal')
   showCreateModal.value = false
@@ -389,10 +435,19 @@ const handleUserSave = async (userData) => {
       closeModal()
       // Refresh the user list
       await loadUsers()
+    } else {
+      // Mostrar errores específicos del backend
+      if (result.errors && result.errors.length > 0) {
+        result.errors.forEach(error => {
+          toast.error(`${error.param}: ${error.msg}`)
+        })
+      } else {
+        toast.error(result.message || 'Error al guardar usuario')
+      }
     }
   } catch (error) {
     console.error('Error saving user:', error)
-    toast.error('Error al guardar usuario')
+    toast.error('Error inesperado al guardar usuario')
   }
 }
 

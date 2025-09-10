@@ -23,7 +23,7 @@ export default defineConfig({
     cors: true,      // Habilitar CORS
     // Configuración adicional de red
     hmr: {
-      host: '172.80.15.89', // IP de tu máquina para Hot Module Replacement
+      host: '172.80.15.89', // IP correcta para Hot Module Replacement
       port: 5173
     }
   },

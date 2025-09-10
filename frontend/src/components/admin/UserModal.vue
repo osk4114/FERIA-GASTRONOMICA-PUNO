@@ -1,10 +1,4 @@
-<templ        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-semibold text-gray-900">
-            {{ isEdit ? 'Editar Usuario' : 'Crear Usuario' }}
-          </h3>
-          <!-- Test visibility -->
-          <div style="background-color: red; color: white; padding: 4px; font-size: 12px;">MODAL VISIBLE</div>
+<template>
   <div v-if="show" 
        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"
        @click.self="$emit('close')">
@@ -12,13 +6,13 @@
       <div style="padding: 24px;">
         <!-- Header -->
         <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-gray-900">
-          {{ isEdit ? 'Editar Usuario' : 'Crear Usuario' }}
-        </h3>
-        <button
-          @click="$emit('close')"
-          class="text-gray-400 hover:text-gray-600 transition-colors"
-        >
+          <h3 class="text-xl font-semibold text-gray-900">
+            {{ isEdit ? 'Editar Usuario' : 'Crear Usuario' }}
+          </h3>
+          <button
+            @click="$emit('close')"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -96,6 +90,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">
             Rol del usuario *
           </label>
+          
           <select
             v-model="form.rol"
             required
@@ -114,19 +109,21 @@
         <div v-if="form.rol === 'productor'" class="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
           <h4 class="text-md font-medium text-green-800">Información del Productor</h4>
           
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Nombre del Negocio *
+            </label>
+            <input
+              v-model="form.negocio"
+              type="text"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Nombre del negocio o marca"
+            >
+            <p v-if="errors.negocio" class="mt-1 text-sm text-red-600">{{ errors.negocio }}</p>
+          </div>
+          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Ubicación
-              </label>
-              <input
-                v-model="form.ubicacion"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Distrito, Provincia"
-              >
-            </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Teléfono
@@ -135,21 +132,23 @@
                 v-model="form.telefono"
                 type="tel"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="999 999 999"
+                placeholder="999999999"
+              >
+              <p class="mt-1 text-xs text-gray-500">Formato: 999999999 (9 dígitos)</p>
+              <p v-if="errors.telefono" class="mt-1 text-sm text-red-600">{{ errors.telefono }}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Dirección
+              </label>
+              <input
+                v-model="form.direccion"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Dirección del negocio"
               >
             </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Especialidad
-            </label>
-            <input
-              v-model="form.especialidad"
-              type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Productos que produce (quinua, papa, etc.)"
-            >
           </div>
         </div>
 
@@ -225,9 +224,9 @@ const form = ref({
   confirmarContraseña: '',
   rol: '',
   activo: true,
-  ubicacion: '',
+  negocio: '',
   telefono: '',
-  especialidad: ''
+  direccion: ''
 })
 
 // Computed
@@ -242,9 +241,9 @@ const resetForm = () => {
     confirmarContraseña: '',
     rol: '',
     activo: true,
-    ubicacion: '',
+    negocio: '',
     telefono: '',
-    especialidad: ''
+    direccion: ''
   }
   errors.value = {}
 }
@@ -260,9 +259,9 @@ watch(() => props.user, (newUser) => {
       confirmarContraseña: '',
       rol: newUser.rol || '',
       activo: newUser.activo !== undefined ? newUser.activo : true,
-      ubicacion: newUser.ubicacion || '',
+      negocio: newUser.negocio || '',
       telefono: newUser.telefono || '',
-      especialidad: newUser.especialidad || ''
+      direccion: newUser.direccion || ''
     }
   } else {
     // Reset form for new user
@@ -300,6 +299,13 @@ const validateForm = () => {
     errors.value.rol = 'El rol es requerido'
   }
 
+  // Validación específica para productores
+  if (form.value.rol === 'productor') {
+    if (!form.value.negocio || !form.value.negocio.trim()) {
+      errors.value.negocio = 'El nombre del negocio es requerido para productores'
+    }
+  }
+
   return Object.keys(errors.value).length === 0
 }
 
@@ -311,14 +317,31 @@ const handleSubmit = async () => {
   loading.value = true
 
   try {
-    const userData = { ...form.value }
+    // Crear objeto base con campos comunes
+    const userData = {
+      nombre: form.value.nombre,
+      email: form.value.email,
+      rol: form.value.rol,
+      activo: form.value.activo
+    }
     
-    // Remove password confirmation from data
-    delete userData.confirmarContraseña
+    // Agregar contraseña solo si no estamos editando o si se proporcionó
+    if (!isEdit.value || form.value.contraseña) {
+      userData.contraseña = form.value.contraseña
+    }
     
-    // If editing, remove password if empty
-    if (isEdit.value && !userData.contraseña) {
-      delete userData.contraseña
+    // Solo agregar campos específicos de productor si el rol es productor
+    if (form.value.rol === 'productor') {
+      // Negocio es obligatorio para productores
+      userData.negocio = form.value.negocio
+      
+      // Campos opcionales solo si tienen valor
+      if (form.value.telefono && form.value.telefono.trim()) {
+        userData.telefono = form.value.telefono.trim()
+      }
+      if (form.value.direccion && form.value.direccion.trim()) {
+        userData.direccion = form.value.direccion.trim()
+      }
     }
     
     // Add ID if editing

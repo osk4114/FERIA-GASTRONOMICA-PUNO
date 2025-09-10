@@ -44,8 +44,10 @@ const registerValidation = [
   
   body('telefono')
     .optional()
-    .isMobilePhone('es-PE')
-    .withMessage('Teléfono inválido')
+    .isLength({ min: 7, max: 15 })
+    .withMessage('El teléfono debe tener entre 7 y 15 dígitos')
+    .matches(/^[0-9+\-\s()]+$/)
+    .withMessage('El teléfono solo puede contener números, espacios, +, - y paréntesis')
 ];
 
 const loginValidation = [

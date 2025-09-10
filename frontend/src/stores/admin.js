@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { toast } from '@/utils/toast'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://172.80.15.89:3000/api'
 
 // Configurar axios para incluir el token automáticamente
 axios.interceptors.request.use((config) => {
